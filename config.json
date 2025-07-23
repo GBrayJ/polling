@@ -1,0 +1,16 @@
+{
+  "name": "meshcentral-polls",
+  "shortName": "polls",
+  "version": "0.0.1",
+  "author": "Your Name",
+  "description": "A MeshCentral plugin to poll devices.",
+  "hasAdminPanel": true,
+  "homepage": "",
+  "changelogUrl": "",
+  "configUrl": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "meshCentralCompat": "1.0.0"
+}
