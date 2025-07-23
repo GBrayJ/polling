@@ -76,7 +76,7 @@
                 const questionType = document.getElementById('questionType').value;
                 const options = document.getElementById('options').value;
 
-                fetch('admin?action=sendQuestion', {
+                fetch('?action=sendQuestion', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -86,13 +86,17 @@
             }
 
             function refreshResults() {
-                fetch('admin')
+                fetch(window.location.href)
                     .then(response => response.text())
                     .then(html => {
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(html, 'text/html');
                         const newTbody = doc.getElementById('results-body');
-                        document.getElementById('results-body').innerHTML = newTbody.innerHTML;
+                        if (newTbody) {
+                            document.getElementById('results-body').innerHTML = newTbody.innerHTML;
+                        } else {
+                            console.error('Could not find results body in response.');
+                        }
                     });
             }
 
