@@ -2,8 +2,10 @@
     "_id": "polls",
     "name": "Polls",
     "description": "A polling plugin for MeshCentral.",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "author": "Your Name",
     "hasAdminPanel": true,
-    "meshCentralCompat": ">=1.0.0"
+    "meshCentralCompat": ">=1.0.0",
+    "server-methods": ["ask"],
+    "client-methods": ["polls_ask"]
 }

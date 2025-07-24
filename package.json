@@ -1,6 +1,6 @@
 {
     "name": "MeshCentral-Polls",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "A polling plugin for MeshCentral",
     "main": "polls.js",
     "scripts": {
