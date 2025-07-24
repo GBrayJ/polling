@@ -1,108 +1,27 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin</title>
-</head>
-<body>
-<div class="card">
-    <div class="card-header">
-        <div class="card-title">
-            {{pluginName}} Admin
-        </div>
+<h3>Polls</h3>
+<p>Ask a question to a device.</p>
+<form id="ask-question-form">
+    <label for="question">Question:</label>
+    <input type="text" id="question" name="question">
+    <button type="submit">Ask</button>
+</form>
+<hr>
+<h4>Response:</h4>
+<p id="response"></p>
 
-    </div>
-    <div class="card-body">
-        <div class="form-group">
-            <label for="device">Device:</label>
-            <select class="form-control" id="device">
-                {{#each devices}}
-                    <option value="{{this._id}}">{{this.name}}</option>
-                {{/each}}
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="questionType">Question Type:</label>
-            <select class="form-control" id="questionType" onchange="questionTypeChanged()">
-                <option value="text">Long Form Text</option>
-                <option value="boolean">Yes/No</option>
-                <option value="mc">Multiple Choice</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="question">Question:</label>
-            <input type="text" class="form-control" id="question" placeholder="Enter your question">
-        </div>
-        <div id="mcOptions" style="display: none;">
-            <div class="form-group">
-                <label for="options">Options (comma-separated):</label>
-                <input type="text" class="form-control" id="options" placeholder="Option 1,Option 2,Option 3">
-            </div>
-        </div>
-        <button class="btn btn-primary" onclick="sendQuestion()">Send Question</button>
-
-        <hr>
-
-        <h3>Poll Results</h3>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Question</th>
-                    <th>Device</th>
-                    <th>Answer</th>
-                </tr>
-            </thead>
-            <tbody id="results-body">
-                {{#each results}}
-                    <tr>
-                        <td>{{this.question}}</td>
-                        <td>{{this.deviceName}}</td>
-                        <td>{{this.answer}}</td>
-                    </tr>
-                {{/each}}
-            </tbody>
-        </table>
-
-        <script>
-            function questionTypeChanged() {
-                const questionType = document.getElementById('questionType').value;
-                document.getElementById('mcOptions').style.display = (questionType === 'mc') ? 'block' : 'none';
-            }
-
-            function sendQuestion() {
-                const deviceId = document.getElementById('device').value;
-                const question = document.getElementById('question').value;
-                const questionType = document.getElementById('questionType').value;
-                const options = document.getElementById('options').value;
-
-                fetch('?action=sendQuestion', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ deviceId, question, questionType, options })
-                });
-            }
-
-            function refreshResults() {
-                fetch(window.location.href)
-                    .then(response => response.text())
-                    .then(html => {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        const newTbody = doc.getElementById('results-body');
-                        if (newTbody) {
-                            document.getElementById('results-body').innerHTML = newTbody.innerHTML;
-                        } else {
-                            console.error('Could not find results body in response.');
-                        }
-                    });
-            }
-
-            setInterval(refreshResults, 5000);
-        </script>
-    </div>
-</div>
-</body>
-</html>
+<script>
+    document.getElementById('ask-question-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var question = document.getElementById('question').value;
+        var nodeid = document.location.search.split('=')[1];
+        var data = {
+            action: 'polls_ask',
+            nodeid: nodeid,
+            question: question
+        };
+        // This will be handled by the plugin's admin.js
+        pluginCommand(data, function(response) {
+            document.getElementById('response').innerText = response.answer;
+        });
+    });
+</script>

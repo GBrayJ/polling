@@ -1,11 +1,12 @@
 {
-  "name": "meshcentral-polls",
-  "version": "0.0.1",
-  "description": "A MeshCentral plugin to poll devices.",
-  "main": "polls.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Your Name",
-  "license": "Apache-2.0"
+    "name": "MeshCentral-Polls",
+    "version": "0.0.1",
+    "description": "A polling plugin for MeshCentral",
+    "main": "polls.js",
+    "scripts": {
+        "test": "echo "Error: no test specified" && exit 1"
+    },
+    "author": "Your Name",
+    "license": "Apache-2.0",
+    "dependencies": {}
 }

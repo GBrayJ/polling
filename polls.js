@@ -1,81 +1,43 @@
-const path = require('path');
-const db = require('SimpleDataStore');
+// MeshCentral Polls Plugin
+// Main aplication
 
-module.exports.polls = function (parent) {
-    const obj = {};
+module.exports.polls = function(parent) {
+    var obj = {};
     obj.parent = parent;
-    obj.meshserver = parent.parent;
-    obj.pluginName = 'polls';
-    obj.db = new db({filename: path.join(obj.meshserver.datapath, 'polls.db'), backup: true});
+    obj.meshServer = parent.parent;
+    obj.db = null;
 
-    obj.handleAdminReq = function (req, res, user) {
-        if (req.body && req.body.action === 'sendQuestion') {
-            const { deviceId, question, questionType, options } = req.body;
-            obj.meshserver.toDevice(deviceId, {
-                action: 'askQuestion',
-                question: question,
-                questionType: questionType,
-                options: options
-            });
-            res.json({ success: true });
-            return;
-        }
-
-        obj.meshserver.getAllDevices(function (err, devices) {
-            obj.db.find({}, function (err, results) {
-                const adminTemplatePath = path.join(__dirname, 'views', 'admin');
-                res.render(adminTemplatePath, { pluginName: obj.pluginName, devices: devices, results: results });
-            });
-        });
+    obj.askQuestion = function(nodeid, question) {
+        obj.meshServer.sendToNode(nodeid, { action: 'polls_ask', question: question });
     };
 
-    obj.onDeviceConnect = function (mesh, user, device) {
-        device.on('message', function (msg) {
-            if (msg.action === 'answerQuestion') {
-                msg.deviceName = device.name;
-                obj.db.insert(msg);
+    obj.answerQuestion = function(nodeid, question, answer) {
+        obj.db.run("INSERT INTO polls (nodeid, question, answer) VALUES (?, ?, ?)", [nodeid, question, answer]);
+    };
+
+    // Called when the plugin is loaded
+    obj.init = function(db) {
+        obj.db = db;
+
+        // Create the polls table if it doesn't exist
+        obj.db.run("CREATE TABLE IF NOT EXISTS polls (nodeid TEXT, question TEXT, answer TEXT)");
+
+        obj.meshServer.on('agentCoreDirect', function(meshserver, module, data, nodeid) {
+            if (module.name == 'polls') {
+                if (data.action == 'polls_answer') {
+                    obj.answerQuestion(nodeid, data.question, data.answer);
+                }
             }
         });
 
-        // Inject client-side script
-        obj.meshserver.toDevice(device._id, {
-            action: 'eval',
-            value: `
-                const meshcentral = require('meshcentral');
-                meshcentral.on('message', function (msg) {
-                    if (msg.action === 'askQuestion') {
-                        let answer;
-                        if (msg.questionType === 'boolean') {
-                            answer = confirm(msg.question);
-                        } else if (msg.questionType === 'mc') {
-                            const options = msg.options.split(',');
-                            let promptText = msg.question + '\n\n';
-                            for (let i = 0; i < options.length; i++) {
-                                promptText += (i + 1) + '. ' + options[i] + '\n';
-                            }
-                            answer = prompt(promptText);
-                        } else {
-                            answer = prompt(msg.question);
-                        }
-
-                        meshcentral.send({
-                            action: 'answerQuestion',
-                            question: msg.question,
-                            answer: answer,
-                            questionType: msg.questionType
-                        });
-                    }
-                });
-            `
+        obj.meshServer.on('plugin', function(packet) {
+            if (packet.plugin == 'polls') {
+                if (packet.command == 'ask') {
+                    obj.askQuestion(packet.data.nodeid, packet.data.question);
+                }
+            }
         });
     };
-
-    obj.server_startup = function() {
-        // TODO: Implement logic on server startup
-    };
-
-    // Expose the handleAdminReq function to the parent module
-    obj.parent.handleAdminReq = obj.handleAdminReq;
 
     return obj;
 };
