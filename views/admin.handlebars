@@ -3,6 +3,19 @@
 <form id="ask-question-form">
     <label for="question">Question:</label>
     <input type="text" id="question" name="question">
+    <br>
+    <label for="question-type">Question Type:</label>
+    <select id="question-type" name="question-type">
+        <option value="text">Long-form Text</option>
+        <option value="boolean">Yes/No</option>
+        <option value="multiple-choice">Multiple Choice</option>
+    </select>
+    <br>
+    <div id="multiple-choice-options" style="display: none;">
+        <label for="options">Options (comma-separated):</label>
+        <input type="text" id="options" name="options">
+    </div>
+    <br>
     <button type="submit">Ask</button>
 </form>
 <hr>
@@ -10,14 +23,27 @@
 <p id="response"></p>
 
 <script>
+    document.getElementById('question-type').addEventListener('change', function() {
+        var multipleChoiceOptions = document.getElementById('multiple-choice-options');
+        if (this.value === 'multiple-choice') {
+            multipleChoiceOptions.style.display = 'block';
+        } else {
+            multipleChoiceOptions.style.display = 'none';
+        }
+    });
+
     document.getElementById('ask-question-form').addEventListener('submit', function(e) {
         e.preventDefault();
         var question = document.getElementById('question').value;
+        var questionType = document.getElementById('question-type').value;
+        var options = document.getElementById('options').value.split(',').map(function(item) { return item.trim(); });
         var nodeid = document.location.search.split('=')[1];
         var data = {
             action: 'polls_ask',
             nodeid: nodeid,
-            question: question
+            question: question,
+            type: questionType,
+            options: options
         };
         // This will be handled by the plugin's admin.js
         pluginCommand(data, function(response) {
